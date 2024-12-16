@@ -1,169 +1,226 @@
 import 'package:flutter/material.dart';
-import 'colors.dart'; // استيراد ملف الألوان
+import 'package:form_field_validator/form_field_validator.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // استخدام ColorScheme لتعريف الألوان بشكل مخصص
-        colorScheme: const ColorScheme(
-          brightness: Brightness.light, // يمكن تغييره إلى .dark للإضاءة الداكنة
-          primary: Colors.transparent, // لن يتم استخدامه هنا
-          onPrimary: Colors.transparent, // لن يتم استخدامه
-          secondary: accentColor,
-          onSecondary: Colors.white,
-          background: backgroundColor,
-          onBackground: Colors.black,
-          surface: Colors.white,
-          onSurface: Colors.black,
-          error: errorColor,
-          onError: Colors.white,
-        ),
-        scaffoldBackgroundColor: backgroundColor,
-        buttonTheme: ButtonThemeData(
-          buttonColor: buttonColor,
-        ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: textColor),
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blueGrey, // لون AppBar
-          foregroundColor: Colors.white, // لون النص داخل AppBar
-        ),
-      ),
-      home: const MyFormPage(),
+      home: CustomFormScreen(),
     );
   }
 }
 
-class MyFormPage extends StatefulWidget {
-  const MyFormPage({Key? key}) : super(key: key);
-
+class CustomFormScreen extends StatefulWidget {
   @override
-  _MyFormPageState createState() => _MyFormPageState();
+  _CustomFormScreenState createState() => _CustomFormScreenState();
 }
 
-class _MyFormPageState extends State<MyFormPage> {
+class _CustomFormScreenState extends State<CustomFormScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final TextEditingController field1Controller = TextEditingController();
-  final TextEditingController field2Controller = TextEditingController();
-  final TextEditingController field3Controller = TextEditingController();
-  final TextEditingController field4Controller = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
+  final TextEditingController _numberController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  bool _agreeToTerms = false;
 
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("القيم المدخلة"),
-          content: Text(
-              "الحقل 1: ${field1Controller.text}\nالحقل 2: ${field2Controller.text}\nالحقل 3: ${field3Controller.text}\nالحقل 4: ${field4Controller.text}"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("حسناً"),
-            ),
-          ],
-        ),
+    if (_formKey.currentState!.validate() && _agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تم إرسال النموذج بنجاح!')),
+      );
+    } else if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('يجب الموافقة على الشروط والأحكام.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('يرجى تصحيح الأخطاء في النموذج.')),
       );
     }
-  }
-
-  @override
-  void dispose() {
-    field1Controller.dispose();
-    field2Controller.dispose();
-    field3Controller.dispose();
-    field4Controller.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('نموذج إدخال'),
+        title: Text('نموذج التحقق'),
+        centerTitle: true,
+        backgroundColor: Colors.purple,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: field1Controller,
-                decoration: InputDecoration(
-                  labelText: 'الحقل 1',
-                  labelStyle: const TextStyle(color: Colors.blueGrey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.blueGrey),
+        child: SingleChildScrollView(
+          child: ClipPath(
+            clipper: TopBottomZigZagClipper(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.purple[50],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.purple.withOpacity(0.3),
+                    blurRadius: 15,
+                    spreadRadius: 3,
+                    offset: Offset(0, 2),
+                  ),
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 5,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'البريد الإلكتروني',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: EmailValidator(
+                            errorText: 'يرجى إدخال بريد إلكتروني صحيح'),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          labelText: 'النص',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: RequiredValidator(errorText: 'النص مطلوب'),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _numberController,
+                        decoration: InputDecoration(
+                          labelText: 'رقم',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: PatternValidator(r'^[0-9]+$',
+                            errorText: 'يرجى إدخال أرقام فقط'),
+                      ),
+                      SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: InputDecoration(
+                          labelText: 'رقم الهاتف اليمني',
+                          border: OutlineInputBorder(),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        validator: PatternValidator(
+                          r'^(9677|96773|96771)[0-9]{6}$',
+                          errorText: 'يرجى إدخال رقم هاتف يمني صحيح',
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _agreeToTerms,
+                            onChanged: (value) {
+                              setState(() {
+                                _agreeToTerms = value!;
+                              });
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              'أوافق على الشروط والأحكام',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      CustomButton(
+                        label: 'إرسال',
+                        color: Colors.green,
+                        onPressed: _submitForm,
+                      ),
+                    ],
                   ),
                 ),
-                validator: (value) =>
-                    value!.isEmpty ? 'يرجى ملء هذا الحقل' : null,
               ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: field2Controller,
-                decoration: InputDecoration(
-                  labelText: 'الحقل 2',
-                  labelStyle: const TextStyle(color: Colors.blueGrey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.blueGrey),
-                  ),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'يرجى ملء هذا الحقل' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: field3Controller,
-                decoration: InputDecoration(
-                  labelText: 'الحقل 3',
-                  labelStyle: const TextStyle(color: Colors.blueGrey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.blueGrey),
-                  ),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'يرجى ملء هذا الحقل' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: field4Controller,
-                decoration: InputDecoration(
-                  labelText: 'الحقل 4',
-                  labelStyle: const TextStyle(color: Colors.blueGrey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.blueGrey),
-                  ),
-                ),
-                validator: (value) =>
-                    value!.isEmpty ? 'يرجى ملء هذا الحقل' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('إرسال'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
-                ),
-              ),
-            ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Custom clipper for zigzag at top and bottom only
+class TopBottomZigZagClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    const double zigzagWidth = 100;
+    const double zigzagHeight = 15;
+    final path = Path();
+    path.moveTo(0, 0);
+    for (double i = 0; i < size.width; i += zigzagWidth) {
+      path.lineTo(i + zigzagWidth / 2, zigzagHeight);
+      path.lineTo(i + zigzagWidth, 0);
+    }
+    path.lineTo(size.width, size.height - zigzagHeight);
+    for (double i = size.width; i > 0; i -= zigzagWidth) {
+      path.lineTo(i - zigzagWidth / 2, size.height);
+      path.lineTo(i - zigzagWidth, size.height - zigzagHeight);
+    }
+    path.lineTo(0, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+class CustomButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const CustomButton({
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        minimumSize: Size(double.infinity, 50),
+      ),
+      onPressed: onPressed,
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
     );
