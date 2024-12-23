@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
+  get: ^4.6.5
   cupertino_icons: ^1.0.8
   form_field_validator: ^1.1.0
 
